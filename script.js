@@ -2,9 +2,9 @@
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-// BANKIST APP
+// ? BANKIST APP
 
-// Data
+// ? Data
 const account1 = {
   owner: "William Poncelet",
   movements: [200, 455.23, -306.5, 25000, -642.21, -133.9, 79.97, 1300],
@@ -21,8 +21,8 @@ const account1 = {
     "2021-04-12T23:36:17.929Z",
     "2021-04-14T10:51:36.790Z",
   ],
-  currency: "EUR",
-  locale: "pt-PT", // de-DE
+  currency: "CAD",
+  locale: "fr-CA", // de-DE
 };
 
 const account2 = {
@@ -97,9 +97,9 @@ tumblerWrapper.addEventListener("click", () => {
 });
 
 /**
- * Create a username as a property for each of the accounts objects.
+ // ? Create a username as a property for each of the accounts objects.
  * The user name has the first letter of each word in lower case. William Poncelet -> wp.
- * @param accounts - The array of account objects.
+ * @param {Array.<Object>} accounts - The array of account objects.
  */
 const createUsernames = (accounts) => {
   accounts.forEach((account) => {
@@ -114,7 +114,7 @@ const createUsernames = (accounts) => {
 createUsernames(accounts);
 
 /**
- * Display the current account balance based on the sum of all the movements.
+ // ? Display the current account balance based on the sum of all the movements.
  * @param {object} acc - The account object.
  */
 const calcDisplayBalance = (acc) => {
@@ -123,33 +123,49 @@ const calcDisplayBalance = (acc) => {
     0
   );
 
-  labelBalance.textContent = `${acc.balance.toFixed(2)}$`;
+  labelBalance.textContent = formatCurrency(
+    acc.balance,
+    acc.locale,
+    acc.currency
+  );
 };
 
+/**
+ * // ? Displays the summaries at the bottom of the screen
+ * @param {object} acc - The account object.
+ */
 const calcDisplaySummary = (acc) => {
   const deposits = acc.movements
     .filter((movement) => movement > 0)
     .reduce((acc, cur) => acc + cur, 0);
-  labelSumIn.textContent = `${deposits.toFixed(2)}$`;
+  labelSumIn.textContent = formatCurrency(deposits, acc.locale, acc.currency);
 
   const withdrawals = acc.movements
     .filter((movement) => movement < 0)
     .reduce((acc, cur) => acc + cur, 0);
-  labelSumOut.textContent = `${Math.abs(withdrawals).toFixed(2)}$`;
+  labelSumOut.textContent = formatCurrency(
+    withdrawals,
+    acc.locale,
+    acc.currency
+  );
 
   const interests = acc.movements
     .filter((movement) => movement > 0)
     .map((deposit) => (deposit * acc.interestRate) / 100)
     .filter((int) => int >= 1)
     .reduce((acc, int) => acc + int, 0);
-  labelSumInterest.textContent = `${interests.toFixed(2)}$`;
+  labelSumInterest.textContent = formatCurrency(
+    interests,
+    acc.locale,
+    acc.currency
+  );
 };
 
 /**
- * Format the movements dates (deposits and withdrawals).
+ // ? Format the movements dates (deposits and withdrawals).
  * @param {Date} date - Date object.
  * @param {string} locale - The current user locale.
- * @return {string} - The format date dd/mm/yyy.
+ * @return {string} - The formatted date dd/mm/yyy.
  */
 const formatMovementDate = function (date, locale) {
   const calcDaysPassed = (date1, date2) =>
@@ -162,17 +178,31 @@ const formatMovementDate = function (date, locale) {
   if (daysPassed === 1) return "Yesterday";
   if (daysPassed <= 7) return `${daysPassed} days ago`;
 
-/*  const day = `${date.getDate()}`.padStart(2, "0");
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const year = date.getFullYear();
-
-  return `${day}/${month}/${year}`;*/
+  /*  const day = `${date.getDate()}`.padStart(2, "0");
+    const month = `${date.getMonth() + 1}`.padStart(2, "0");
+    const year = date.getFullYear();
+  
+    return `${day}/${month}/${year}`;*/
 
   return new Intl.DateTimeFormat(locale).format(date);
 };
 
 /**
- * Display the transactions of an account (deposits and withdrawals).
+ // ? Format the currency depending on the user locale and currency options.
+ * @param {number} value - The value to format.
+ * @param {string} locale - The user defined locale in the acc object.
+ * @param {string} currency - The user defined currency in the acc object.
+ * @return {string} - The formatted currency.
+ */
+const formatCurrency = function (value, locale, currency) {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: currency,
+  }).format(value);
+};
+
+/**
+ // ? Display the transactions of an account (deposits and withdrawals).
  * @param {object} acc - The account object.
  * @param {boolean} sort - Sort in ascending order or not.
  */
@@ -189,6 +219,8 @@ const displayMovements = function (acc, sort = false) {
     const date = new Date(acc.movementsDates[i]);
     const displayDate = formatMovementDate(date, acc.locale);
 
+    const formattedMov = formatCurrency(movement, acc.locale, acc.currency);
+
     const html = ` ${
       isDark
         ? `<div class='movements__row movements__row--night-mode'>`
@@ -198,7 +230,7 @@ const displayMovements = function (acc, sort = false) {
       i + 1
     } ${type}</div>
         <div class='movements__date'>${displayDate}</div>
-        <div class='movements__value'>${movement.toFixed(2)}$</div>
+        <div class='movements__value'>${formattedMov}</div>
     </div>
     `;
 
@@ -208,7 +240,7 @@ const displayMovements = function (acc, sort = false) {
 };
 
 /**
- * Updates the UI by calling these functions on the currentAccount object.
+ // ? Updates the UI by calling these functions on the currentAccount object.
  * @param {object} currentAccount - The account on which we need to update the UI.
  */
 const updateUI = (currentAccount) => {
@@ -222,21 +254,44 @@ const updateUI = (currentAccount) => {
   displayMovements(currentAccount);
 };
 
+const startLogoutTimer = function () {
+  const tick = function () {
+    const min = String(Math.trunc(time / 60)).padStart(2, 0);
+    const sec = String(time % 60).padStart(2, 0);
 
+    // In each call, print the remaining time to the UI
+    labelTimer.textContent = `${min}:${sec}`;
 
+    // When the time is at 0 seconds, stop timer and logout user.
+    if (time === 0) {
+      clearTimeout(timer);
 
+      labelWelcome.textContent = "Log in to get started";
+      containerApp.style.opacity = 0;
+    }
 
+    //Decrease 1 second
+    time--;
+  };
 
-/**
- * Login implementation.
- */
-let currentAccount;
+  // Set time to 5 minutes
+  let time = 120; // Seconds
 
-// FAKE ALWAYS LOGGED IN
-currentAccount = account1;
+  // Call the timer every second
+  tick();
+  const timer = setInterval(tick, 1000);
+
+  return timer;
+};
+
+// ? FAKE ALWAYS LOGGED IN
+/*currentAccount = account1;
 updateUI(currentAccount);
-containerApp.style.opacity = 100;
+containerApp.style.opacity = 100;*/
 
+// ? Login implementation
+
+let currentAccount, timer;
 
 btnLogin.addEventListener("click", (e) => {
   //Prevent form from submitting
@@ -256,35 +311,35 @@ btnLogin.addEventListener("click", (e) => {
     containerApp.style.opacity = 100;
 
     // Create current date and time
-
     const now = new Date();
     const options = {
-      hour: 'numeric',
-      minute: 'numeric',
-      day: 'numeric',
-      month: 'numeric',
-      year:'numeric',
+      hour: "numeric",
+      minute: "numeric",
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
       //weekday: 'long'
-    }
+    };
 
-   /* const locale = navigator.language;*/
-
-
-    labelDate.textContent = new Intl.DateTimeFormat(currentAccount.locale, options).format(now);
+    labelDate.textContent = new Intl.DateTimeFormat(
+      currentAccount.locale,
+      options
+    ).format(now);
 
     // Clear input fields
     inputLoginUsername.value = inputLoginPin.value = "";
 
+    // Timer
+    if (timer) clearInterval(timer);
+    timer = startLogoutTimer();
+
     // Update UI
     updateUI(currentAccount);
-
-    console.log("LOGIN");
   }
 });
 
-/**
- * Sorting implementation.
- */
+// ? Sorting implementation.
+
 let isSorted = false;
 
 btnSort.addEventListener("click", () => {
@@ -292,9 +347,8 @@ btnSort.addEventListener("click", () => {
   displayMovements(currentAccount, isSorted);
 });
 
-/**
- * Transfert implementation.
- */
+// ? Transfert implementation.
+
 btnTransfer.addEventListener("click", (e) => {
   e.preventDefault();
 
@@ -322,15 +376,14 @@ btnTransfer.addEventListener("click", (e) => {
 
     // Update UI
     updateUI(currentAccount);
-  }
 
-  console.log(receiverAcc);
-  console.log(currentAccount);
+    // Reset timer
+    clearInterval(timer);
+    timer = startLogoutTimer();
+  }
 });
 
-/**
- * Loan request implantation
- */
+// ? Loan request implementation.
 
 btnLoan.addEventListener("click", (e) => {
   e.preventDefault();
@@ -341,23 +394,27 @@ btnLoan.addEventListener("click", (e) => {
     amount > 0 &&
     currentAccount.movements.some((mov) => mov >= amount * 0.1)
   ) {
-    // Add movement
-    currentAccount.movements.push(amount);
+    setTimeout(function () {
+      // Add movement
+      currentAccount.movements.push(amount);
 
-    // Add loan date
-    currentAccount.movementsDates.push(new Date().toISOString());
+      // Add loan date
+      currentAccount.movementsDates.push(new Date().toISOString());
 
-    // Update UI
-    updateUI(currentAccount);
+      // Update UI
+      updateUI(currentAccount);
+
+      // Reset timer
+      clearInterval(timer);
+      timer = startLogoutTimer();
+    }, 2500);
   }
 
   // Clear input field
   inputLoanAmount.value = "";
 });
 
-/**
- * Close account implementation.
- */
+// ? Close account implementation.
 
 btnClose.addEventListener("click", (e) => {
   e.preventDefault();
