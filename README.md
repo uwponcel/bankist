@@ -2,6 +2,8 @@
 
 Bankist is a simulated bank web app made in vanilla Javascript.
 
+Live version : [here](https://uwponcel.github.io/bankist/ "Live version")
+
 🌙  | 🌞
 ------------- | -------------
 ![](img/Screenshot_1.png)  | ![](img/Screenshot_2.png)
@@ -18,9 +20,11 @@ Bankist is a simulated bank web app made in vanilla Javascript.
 
 - Close an account. :x:
 
+- Internationalizing for each account. Display values in the current account currency and locale. 🌏
+
 - Logout timer after a certain amount of time. :timer_clock:
 
-- Dark and light mode ! :crescent_moon:
+- Dark and light mode ! 🌙 🌞
 
 - - - -
 
@@ -34,7 +38,7 @@ Account 1  | Account 2
 **User : wp** | **PIN: 1111**
 **User : js** |**PIN: 2222**
 
-Live version : 
+Live version : [here](https://uwponcel.github.io/bankist/ "Live version")
 
 ## Contributing :hammer_and_wrench:
 
